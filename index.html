@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golf Practice Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Golf Practice Tracker</h1>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <nav class="mobile-nav" id="mobile-nav">
+                <ul>
+                    <li><button id="signup-btn">Sign Up</button></li>
+                    <li><button id="login-btn">Log In</button></li>
+                    <li id="user-status" style="display:none;">
+                        <span id="user-email"></span>
+                        <button id="logout-btn">Log Out</button>
+                    </li>
+                    <li><button id="open-subscribe-landing">Subscription Options</button></li>
+                </ul>
+            </nav>
         </header>
         
         <main>
@@ -62,6 +79,52 @@
                 <button class="reset-btn" id="reset-btn">Reset</button>
             </div>
         </main>
+    </div>
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-signup">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signup-form">
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" required>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" required>
+                <button type="submit">Create Account</button>
+            </form>
+            <div id="signup-message"></div>
+        </div>
+    </div>
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-login">&times;</span>
+            <h2>Log In</h2>
+            <form id="login-form">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" required>
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required>
+                <button type="submit">Log In</button>
+            </form>
+            <div id="login-message"></div>
+        </div>
+    </div>
+    <div id="subscribe-landing-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-subscribe-landing">&times;</span>
+            <h2>Choose Your Subscription</h2>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 1.5rem; width: 90%; max-width: 350px; text-align: center;">
+                    <h3>Monthly</h3>
+                    <p>$1 per month</p>
+                    <button id="subscribe-monthly-btn" style="background: var(--hermes-orange); color: #fff; padding: 0.75rem 2rem; border: none; border-radius: 6px; font-size: 1.1rem;">Subscribe Monthly</button>
+                </div>
+                <div style="border: 1px solid #eee; border-radius: 8px; padding: 1.5rem; width: 90%; max-width: 350px; text-align: center;">
+                    <h3>Lifetime</h3>
+                    <p>$5 one-time</p>
+                    <button id="subscribe-lifetime-btn" style="background: var(--hermes-orange-dark); color: #fff; padding: 0.75rem 2rem; border: none; border-radius: 6px; font-size: 1.1rem;">Subscribe Lifetime</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
