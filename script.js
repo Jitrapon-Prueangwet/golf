@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const setGoalOkBtn = document.getElementById('set-goal-ok-btn');
     const setGoalMessage = document.getElementById('set-goal-message');
     const setGoalConfettiCanvas = document.getElementById('set-goal-confetti-canvas');
+    const targetLabel = document.getElementById('target-label');
+    const targetUnit = document.getElementById('target-unit');
 
     // State
     let currentClub = 'iron';
@@ -61,11 +63,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const subscribeMonthlyBtn = document.getElementById('subscribe-monthly-btn');
     const subscribeLifetimeBtn = document.getElementById('subscribe-lifetime-btn');
 
+    const navBackdrop = document.getElementById('nav-backdrop');
+    document.querySelectorAll('.mobile-nav button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            mobileNav.classList.remove('active');
+            if (navBackdrop) navBackdrop.style.display = 'none';
+        });
+    });
+    if (navBackdrop) {
+        navBackdrop.addEventListener('click', () => {
+            mobileNav.classList.remove('active');
+            navBackdrop.style.display = 'none';
+        });
+    }
     if (hamburger) {
         hamburger.addEventListener('click', () => {
             mobileNav.classList.toggle('active');
+            if (navBackdrop) navBackdrop.style.display = mobileNav.classList.contains('active') ? 'block' : 'none';
         });
     }
+
     if (signupBtn) {
         signupBtn.addEventListener('click', () => {
             signupModal.style.display = 'flex';
@@ -125,6 +142,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 ironDropdown.style.display = 'none';
                 driverDropdown.style.display = 'none';
+            }
+            // Update target label and unit dropdown
+            if (button.dataset.club === 'putt') {
+                if (targetLabel) targetLabel.textContent = 'Target Distance';
+                if (targetUnit) {
+                    targetUnit.innerHTML = '<option value="feet">feet</option><option value="meters">meters</option>';
+                    targetUnit.value = 'feet';
+                }
+            } else {
+                if (targetLabel) targetLabel.textContent = 'Target Distance (yards):';
+                if (targetUnit) {
+                    targetUnit.innerHTML = '<option value="yards">yards</option>';
+                    targetUnit.value = 'yards';
+                }
             }
         });
     });
@@ -306,12 +337,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auth state and UI
     async function setAuthUI() {
         const { data: { user } } = await supabase.auth.getUser();
+        const subscribeBtn = document.getElementById('open-subscribe-landing');
         if (user && user.email) {
             showUser(user.email);
             enableStatTracking(true);
+            // Hide Sign Up and Log In, show user-status and subscription
+            if (signupBtn) signupBtn.style.display = 'none';
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (userStatus) userStatus.style.display = 'flex';
+            if (subscribeBtn) subscribeBtn.style.display = '';
         } else {
             hideUser();
             enableStatTracking(false);
+            // Show Sign Up and Log In, hide user-status and subscription
+            if (signupBtn) signupBtn.style.display = '';
+            if (loginBtn) loginBtn.style.display = '';
+            if (userStatus) userStatus.style.display = 'none';
+            if (subscribeBtn) subscribeBtn.style.display = 'none';
         }
     }
 

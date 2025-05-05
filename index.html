@@ -20,10 +20,13 @@
                 <ul>
                     <li><button id="signup-btn">Sign Up</button></li>
                     <li><button id="login-btn">Log In</button></li>
-                    <li id="user-status" style="display:none;">
+                    <li id="user-status" style="display:none; flex-direction: column; align-items: center;">
                         <span id="user-email"></span>
-                        <button id="logout-btn">Log Out</button>
+                        <button id="logout-btn" role="menuitem" style="margin-top: 0.5rem;">
+                            Log Out
+                        </button>
                     </li>
+                    <li><a href="statistics.html">Statistics</a></li>
                     <li><button id="open-subscribe-landing">Subscription Options</button></li>
                 </ul>
             </nav>
@@ -55,8 +58,15 @@
 
             <div class="input-group">
                 <div class="target-input">
-                    <label for="target">Target Distance (yards):</label>
-                    <input type="number" id="target" min="1" placeholder="Enter target distance">
+                    <label for="target" id="target-label">Target Distance (yards):</label>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <input type="number" id="target" min="1" placeholder="Enter target distance">
+                        <select id="target-unit" style="margin-left:0.5rem;">
+                            <option value='yards'>yards</option>
+                            <option value='feet'>feet</option>
+                            <option value='meters'>meters</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="balls-input">

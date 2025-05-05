@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Practice Statistics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-icon" aria-label="Back to Practice Tracker">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <h1>Golf Practice Statistics</h1>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <nav class="mobile-nav" id="mobile-nav">
+                <ul>
+                    <li><a href="index.html">Practice Tracker</a></li>
+                    <li><a href="statistics.html" class="active">Statistics</a></li>
+                    <li id="user-status" style="display:none; flex-direction: column; align-items: center;">
+                        <span id="user-email"></span>
+                        <button id="logout-btn" role="menuitem" style="margin-top: 0.5rem;">
+                            Log Out
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <div class="club-selector">
+                <button class="club-btn active" data-club="iron" id="iron-btn">Iron</button>
+                <select id="iron-dropdown" style="display:none; margin-left: 1rem;">
+                    <option value="3-iron">3 Iron</option>
+                    <option value="4-iron">4 Iron</option>
+                    <option value="5-iron">5 Iron</option>
+                    <option value="6-iron">6 Iron</option>
+                    <option value="7-iron">7 Iron</option>
+                    <option value="8-iron">8 Iron</option>
+                    <option value="9-iron">9 Iron</option>
+                    <option value="pw">PW</option>
+                    <option value="sw">SW</option>
+                </select>
+                <button class="club-btn" data-club="driver" id="driver-btn">Driver</button>
+                <select id="driver-dropdown" style="display:none; margin-left: 1rem;">
+                    <option value="driver">Driver</option>
+                    <option value="3-wood">3 Wood</option>
+                    <option value="5-wood">5 Wood</option>
+                    <option value="7-wood">7 Wood</option>
+                </select>
+                <button class="club-btn" data-club="putt">Putt</button>
+            </div>
+
+            <div class="stats-container">
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <h3>Overall Performance</h3>
+                        <canvas id="overall-chart"></canvas>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Recent Sessions</h3>
+                        <canvas id="sessions-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="detailed-stats">
+                    <div class="stat-card">
+                        <h3>Club Performance</h3>
+                        <div class="club-stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Attempts</span>
+                                <span class="stat-value" id="total-attempts">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Successful Hits</span>
+                                <span class="stat-value" id="successful-hits">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Success Rate</span>
+                                <span class="stat-value" id="success-rate">0%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Average Distance</span>
+                                <span class="stat-value" id="avg-distance">0 yards</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Balls Hit</span>
+                                <span class="stat-value" id="balls-hit">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Progress Over Time</h3>
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="statistics.js"></script>
+</body>
+</html> 
