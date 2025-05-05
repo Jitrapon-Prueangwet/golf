@@ -234,6 +234,11 @@ input[type="number"]:focus {
     transform: scale(1.05);
 }
 
+#subscribe-monthly-btn,
+#subscribe-lifetime-btn {
+    cursor: pointer;
+}
+
 @media (max-width: 600px) {
     .container {
         padding: 1rem;

@@ -341,7 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (subscribeMonthlyBtn) {
-        subscribeMonthlyBtn.addEventListener('click', () => handleSubscribe('monthly'));
+        subscribeMonthlyBtn.addEventListener('click', function() {
+            window.location.href = 'https://buy.stripe.com/9AQ4jze6qglG9nW7ss';
+        });
     }
     if (subscribeLifetimeBtn) {
         subscribeLifetimeBtn.addEventListener('click', () => handleSubscribe('lifetime'));
