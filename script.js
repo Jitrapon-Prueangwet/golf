@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const actualHitsInfo = document.getElementById('actual-hits-info');
     const resetBtn = document.getElementById('reset-btn');
     const payBtn = document.getElementById('pay-btn');
+    const ironBtn = document.getElementById('iron-btn');
+    const ironDropdown = document.getElementById('iron-dropdown');
+    const driverBtn = document.getElementById('driver-btn');
+    const driverDropdown = document.getElementById('driver-dropdown');
+    const celebrateModal = document.getElementById('celebrate-modal');
+    const closeCelebrate = document.getElementById('close-celebrate');
+    const setGoalModal = document.getElementById('set-goal-modal');
+    const setGoalOkBtn = document.getElementById('set-goal-ok-btn');
+    const setGoalMessage = document.getElementById('set-goal-message');
+    const setGoalConfettiCanvas = document.getElementById('set-goal-confetti-canvas');
 
     // State
     let currentClub = 'iron';
@@ -105,8 +115,33 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('active');
             // Update current club
             currentClub = button.dataset.club;
+            // Show/hide iron and driver dropdowns
+            if (button === ironBtn) {
+                ironDropdown.style.display = 'inline-block';
+                driverDropdown.style.display = 'none';
+            } else if (button === driverBtn) {
+                driverDropdown.style.display = 'inline-block';
+                ironDropdown.style.display = 'none';
+            } else {
+                ironDropdown.style.display = 'none';
+                driverDropdown.style.display = 'none';
+            }
         });
     });
+
+    // When a specific iron is selected, update currentClub
+    if (ironDropdown) {
+        ironDropdown.addEventListener('change', function() {
+            currentClub = this.value;
+        });
+    }
+
+    // When a specific driver/wood is selected, update currentClub
+    if (driverDropdown) {
+        driverDropdown.addEventListener('change', function() {
+            currentClub = this.value;
+        });
+    }
 
     // Result Handling
     function handleResult(isHit) {
@@ -117,42 +152,69 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const targetDistance = parseInt(targetInput.value);
-        const numberOfBalls = parseInt(ballsInput.value);
-        
+        const targetBalls = parseInt(ballsInput.value) || 1;
+        // Prevent counting more than the target
+        if (successfulHits + (isHit ? 1 : 0) > targetBalls || totalAttempts >= targetBalls) {
+            return;
+        }
         if (!targetDistance || targetDistance <= 0) {
             alert('Please enter a valid target distance');
             return;
         }
-
-        if (!numberOfBalls || numberOfBalls <= 0) {
-            alert('Please enter a valid number of balls');
-            return;
-        }
-
-        totalAttempts += numberOfBalls;
+        // Only count 1 ball per click
+        totalAttempts += 1;
         if (isHit) {
-            successfulHits += numberOfBalls;
+            successfulHits += 1;
         }
-
         // Update UI
         updateProgress();
         updateStats();
+        // Show celebrate modal if target reached
+        if (successfulHits === targetBalls && celebrateModal) {
+            celebrateModal.style.display = 'flex';
+            launchConfetti();
+        }
+        // Show set-goal modal with appropriate message when totalAttempts reaches targetBalls
+        if (totalAttempts === targetBalls && setGoalModal && setGoalMessage) {
+            const percent = (successfulHits / targetBalls) * 100;
+            if (percent >= 80) {
+                setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">🎉 Congratulations! 🎉</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls! (' + Math.round(percent) + '%)</p>';
+                if (setGoalConfettiCanvas) {
+                    setGoalConfettiCanvas.style.display = 'block';
+                    launchSetGoalConfetti();
+                }
+            } else {
+                setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">Keep Trying!</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls. (' + Math.round(percent) + '%)<br>You will get there! Set another goal and keep practicing!</p>';
+                if (setGoalConfettiCanvas) setGoalConfettiCanvas.style.display = 'none';
+            }
+            setGoalModal.style.display = 'flex';
+            // Reset page to default
+            totalAttempts = 0;
+            successfulHits = 0;
+            targetInput.value = '';
+            ballsInput.value = 1;
+            updateProgress();
+            updateStats();
+            actualHitsInfo.textContent = 'Balls Hit: 0';
+        }
     }
 
     // Update Progress Bar
     function updateProgress() {
-        const successRate = totalAttempts > 0 ? (successfulHits / totalAttempts) * 100 : 0;
-        progressFill.style.width = `${successRate}%`;
-        successRateText.textContent = `${Math.round(successRate)}%`;
+        const targetBalls = parseInt(ballsInput.value) || 1;
+        const percent = successfulHits > 0 ? (successfulHits / targetBalls) * 100 : 0;
+        progressFill.style.width = `${Math.min(percent, 100)}%`;
+        successRateText.textContent = `${Math.round(percent)}%`;
     }
 
     // Update Statistics
     function updateStats() {
+        const targetBalls = parseInt(ballsInput.value) || 1;
         totalAttemptsText.textContent = totalAttempts;
         successfulHitsText.textContent = successfulHits;
         // Update balls hit info
-        const percent = totalAttempts > 0 ? Math.round((successfulHits / totalAttempts) * 100) : 0;
-        ballsHitInfo.textContent = `Balls Hit: ${successfulHits} / ${totalAttempts} (${percent}%)`;
+        const percent = successfulHits > 0 ? Math.round((successfulHits / targetBalls) * 100) : 0;
+        ballsHitInfo.textContent = `Balls Hit: ${successfulHits} / ${targetBalls} (${percent}%)`;
         // Update actual hits info below number of balls
         actualHitsInfo.textContent = `Balls Hit: ${successfulHits}`;
     }
@@ -166,13 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = e.target.value;
         if (value < 0) {
             e.target.value = 0;
-        }
-    });
-
-    ballsInput.addEventListener('input', (e) => {
-        const value = e.target.value;
-        if (value < 1) {
-            e.target.value = 1;
         }
     });
 
@@ -347,5 +402,171 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (subscribeLifetimeBtn) {
         subscribeLifetimeBtn.addEventListener('click', () => handleSubscribe('lifetime'));
+    }
+
+    // Close celebrate modal
+    if (closeCelebrate && celebrateModal) {
+        closeCelebrate.addEventListener('click', function() {
+            celebrateModal.style.display = 'none';
+        });
+    }
+    window.addEventListener('click', function(event) {
+        if (event.target === celebrateModal) {
+            celebrateModal.style.display = 'none';
+        }
+    });
+
+    // Confetti animation
+    function launchConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let W = canvas.width = canvas.offsetWidth;
+        let H = canvas.height = canvas.offsetHeight;
+        let confetti = [];
+        const confettiCount = 120;
+        const colors = ['#FF4E00', '#FF7A33', '#CC3E00', '#FFD700', '#00CFFF', '#FF69B4'];
+        for (let i = 0; i < confettiCount; i++) {
+            confetti.push({
+                x: Math.random() * W,
+                y: Math.random() * H - H,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * confettiCount,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngleIncremental: (Math.random() * 0.07) + .05,
+                tiltAngle: 0
+            });
+        }
+        let angle = 0;
+        let tiltAngle = 0;
+        let animationFrame;
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            for (let i = 0; i < confettiCount; i++) {
+                let c = confetti[i];
+                ctx.beginPath();
+                ctx.lineWidth = c.r;
+                ctx.strokeStyle = c.color;
+                ctx.moveTo(c.x + c.tilt + (c.r / 3), c.y);
+                ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+                ctx.stroke();
+            }
+            update();
+        }
+        function update() {
+            angle += 0.01;
+            tiltAngle += 0.1;
+            for (let i = 0; i < confettiCount; i++) {
+                let c = confetti[i];
+                c.y += (Math.cos(angle + c.d) + 1 + c.r / 2) / 2;
+                c.x += Math.sin(angle);
+                c.tiltAngle += c.tiltAngleIncremental;
+                c.tilt = Math.sin(c.tiltAngle - (i / 3)) * 15;
+                if (c.y > H) {
+                    c.x = Math.random() * W;
+                    c.y = -10;
+                }
+            }
+        }
+        function loop() {
+            draw();
+            animationFrame = requestAnimationFrame(loop);
+        }
+        loop();
+        // Stop after 3 seconds
+        setTimeout(() => {
+            cancelAnimationFrame(animationFrame);
+            ctx.clearRect(0, 0, W, H);
+            // After confetti, show set-goal modal and reset page
+            if (setGoalModal) setGoalModal.style.display = 'flex';
+            // Reset page to default
+            totalAttempts = 0;
+            successfulHits = 0;
+            targetInput.value = '';
+            ballsInput.value = 1;
+            updateProgress();
+            updateStats();
+            actualHitsInfo.textContent = 'Balls Hit: 0';
+        }, 3000);
+        // Also clear on modal close
+        function clearConfetti() {
+            cancelAnimationFrame(animationFrame);
+            ctx.clearRect(0, 0, W, H);
+        }
+        celebrateModal.addEventListener('click', clearConfetti, { once: true });
+        if (closeCelebrate) closeCelebrate.addEventListener('click', clearConfetti, { once: true });
+    }
+
+    if (setGoalOkBtn && setGoalModal) {
+        setGoalOkBtn.addEventListener('click', function() {
+            setGoalModal.style.display = 'none';
+        });
+    }
+
+    // Confetti for set-goal modal
+    function launchSetGoalConfetti() {
+        const canvas = setGoalConfettiCanvas;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let W = canvas.width = canvas.offsetWidth;
+        let H = canvas.height = canvas.offsetHeight;
+        let confetti = [];
+        const confettiCount = 100;
+        const colors = ['#FF4E00', '#FF7A33', '#CC3E00', '#FFD700', '#00CFFF', '#FF69B4'];
+        for (let i = 0; i < confettiCount; i++) {
+            confetti.push({
+                x: Math.random() * W,
+                y: Math.random() * H - H,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * confettiCount,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngleIncremental: (Math.random() * 0.07) + .05,
+                tiltAngle: 0
+            });
+        }
+        let angle = 0;
+        let tiltAngle = 0;
+        let animationFrame;
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            for (let i = 0; i < confettiCount; i++) {
+                let c = confetti[i];
+                ctx.beginPath();
+                ctx.lineWidth = c.r;
+                ctx.strokeStyle = c.color;
+                ctx.moveTo(c.x + c.tilt + (c.r / 3), c.y);
+                ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+                ctx.stroke();
+            }
+            update();
+        }
+        function update() {
+            angle += 0.01;
+            tiltAngle += 0.1;
+            for (let i = 0; i < confettiCount; i++) {
+                let c = confetti[i];
+                c.y += (Math.cos(angle + c.d) + 1 + c.r / 2) / 2;
+                c.x += Math.sin(angle);
+                c.tiltAngle += c.tiltAngleIncremental;
+                c.tilt = Math.sin(c.tiltAngle - (i / 3)) * 15;
+                if (c.y > H) {
+                    c.x = Math.random() * W;
+                    c.y = -10;
+                }
+            }
+        }
+        function loop() {
+            draw();
+            animationFrame = requestAnimationFrame(loop);
+        }
+        loop();
+        // Stop after 3 seconds
+        setTimeout(() => {
+            cancelAnimationFrame(animationFrame);
+            ctx.clearRect(0, 0, W, H);
+            canvas.style.display = 'none';
+        }, 3000);
     }
 });

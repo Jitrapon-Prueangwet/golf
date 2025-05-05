@@ -31,8 +31,25 @@
         
         <main>
             <div class="club-selector">
-                <button class="club-btn active" data-club="iron">Iron</button>
-                <button class="club-btn" data-club="driver">Driver</button>
+                <button class="club-btn active" data-club="iron" id="iron-btn">Iron</button>
+                <select id="iron-dropdown" style="display:none; margin-left: 1rem;">
+                    <option value="3-iron">3 Iron</option>
+                    <option value="4-iron">4 Iron</option>
+                    <option value="5-iron">5 Iron</option>
+                    <option value="6-iron">6 Iron</option>
+                    <option value="7-iron">7 Iron</option>
+                    <option value="8-iron">8 Iron</option>
+                    <option value="9-iron">9 Iron</option>
+                    <option value="pw">PW</option>
+                    <option value="sw">SW</option>
+                </select>
+                <button class="club-btn" data-club="driver" id="driver-btn">Driver</button>
+                <select id="driver-dropdown" style="display:none; margin-left: 1rem;">
+                    <option value="driver">Driver</option>
+                    <option value="3-wood">3 Wood</option>
+                    <option value="5-wood">5 Wood</option>
+                    <option value="7-wood">7 Wood</option>
+                </select>
                 <button class="club-btn" data-club="putt">Putt</button>
             </div>
 
@@ -44,7 +61,7 @@
 
                 <div class="balls-input">
                     <label for="balls">Number of Balls:</label>
-                    <input type="number" id="balls" min="1" value="1" placeholder="Enter number of balls">
+                    <input type="number" id="balls" value="0" placeholder="Enter number of balls">
                     <div class="actual-hits-info" id="actual-hits-info">Balls Hit: 0</div>
                 </div>
             </div>
@@ -124,6 +141,21 @@
                     <button id="subscribe-lifetime-btn" style="background: var(--hermes-orange-dark); color: #fff; padding: 0.75rem 2rem; border: none; border-radius: 6px; font-size: 1.1rem;">Subscribe Lifetime</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="celebrate-modal" class="modal" style="display:none; justify-content:center; align-items:center;">
+        <div class="modal-content" style="text-align:center; position:relative;">
+            <canvas id="confetti-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+            <span class="close" id="close-celebrate">&times;</span>
+            <h2 style="color: var(--hermes-orange); font-size:2.5rem;">🎉 Congratulations! 🎉</h2>
+            <p style="font-size:1.3rem;">You hit your target number of balls!</p>
+        </div>
+    </div>
+    <div id="set-goal-modal" class="modal" style="display:none; justify-content:center; align-items:center;">
+        <div class="modal-content" style="text-align:center; position:relative;">
+            <canvas id="set-goal-confetti-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none;"></canvas>
+            <div id="set-goal-message"></div>
+            <button id="set-goal-ok-btn" style="margin-top:1.5rem; background: var(--hermes-orange); color: #fff; padding: 0.75rem 2rem; border: none; border-radius: 6px; font-size: 1.1rem; cursor:pointer;">OK</button>
         </div>
     </div>
     <script src="script.js"></script>
