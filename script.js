@@ -197,54 +197,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isHit) {
             successfulHits += 1;
         }
-        // Calculate balls_missed and success_rate
-        const ballsMissed = totalAttempts - successfulHits;
-        const successRate = (successfulHits / totalAttempts) * 100;
-        // Get current timestamp
-        const currentTimestamp = new Date().toISOString();
-        // Save this attempt to Supabase (revised columns)
-        await supabase.from('practice_sessions').insert([
-            {
-                user_id: user.id,
-                date: currentTimestamp,
-                club: currentClub,
-                target_distance: targetDistance,
-                target_balls: targetBalls,
-                balls_hit: successfulHits,
-                balls_missed: ballsMissed,
-                success_rate: successRate
-            }
-        ]);
-        // Update UI
-        updateProgress();
-        updateStats();
-        // Show celebrate modal if target reached
-        if (successfulHits === targetBalls && celebrateModal) {
-            celebrateModal.style.display = 'flex';
-            launchConfetti();
-        }
-        // Show set-goal modal with appropriate message when totalAttempts reaches targetBalls
-        if (totalAttempts === targetBalls && setGoalModal && setGoalMessage) {
-            const percent = (successfulHits / targetBalls) * 100;
-            if (percent >= 80) {
-                setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">🎉 Congratulations! 🎉</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls! (' + Math.round(percent) + '%)</p>';
-                if (setGoalConfettiCanvas) {
-                    setGoalConfettiCanvas.style.display = 'block';
-                    launchSetGoalConfetti();
+        // Only insert when session is complete
+        if (totalAttempts === targetBalls) {
+            const ballsMissed = totalAttempts - successfulHits;
+            const successRate = (successfulHits / totalAttempts) * 100;
+            const currentTimestamp = new Date().toISOString();
+            await supabase.from('practice_sessions').insert([
+                {
+                    user_id: user.id,
+                    date: currentTimestamp,
+                    club: currentClub,
+                    target_distance: targetDistance,
+                    target_balls: targetBalls,
+                    balls_hit: successfulHits,
+                    balls_missed: ballsMissed,
+                    success_rate: successRate
                 }
-            } else {
-                setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">Keep Trying!</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls. (' + Math.round(percent) + '%)<br>You will get there! Set another goal and keep practicing!</p>';
-                if (setGoalConfettiCanvas) setGoalConfettiCanvas.style.display = 'none';
+            ]);
+            // Show set-goal modal with appropriate message when totalAttempts reaches targetBalls
+            if (setGoalModal && setGoalMessage) {
+                const percent = (successfulHits / targetBalls) * 100;
+                if (percent >= 80) {
+                    setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">🎉 Congratulations! 🎉</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls! (' + Math.round(percent) + '%)</p>';
+                    if (setGoalConfettiCanvas) {
+                        setGoalConfettiCanvas.style.display = 'block';
+                        launchSetGoalConfetti();
+                    }
+                } else {
+                    setGoalMessage.innerHTML = '<h2 style="color: var(--hermes-orange); font-size:2rem;">Keep Trying!</h2><p style="font-size:1.2rem;">You hit ' + successfulHits + ' out of ' + targetBalls + ' balls. (' + Math.round(percent) + '%)<br>You will get there! Set another goal and keep practicing!</p>';
+                    if (setGoalConfettiCanvas) setGoalConfettiCanvas.style.display = 'none';
+                }
+                setGoalModal.style.display = 'flex';
             }
-            setGoalModal.style.display = 'flex';
-            // Reset page to default
+            // Update Balls Hit for this session
+            actualHitsInfo.textContent = `Balls Hit: ${successfulHits}`;
+            // Reset for next session
             totalAttempts = 0;
             successfulHits = 0;
             targetInput.value = '';
             ballsInput.value = 1;
             updateProgress();
             updateStats();
-            actualHitsInfo.textContent = 'Balls Hit: 0';
+        } else {
+            // Just update UI for each hit/miss
+            updateProgress();
+            updateStats();
+            actualHitsInfo.textContent = `Balls Hit: ${successfulHits}`;
+        }
+        // Show celebrate modal if target reached
+        if (successfulHits === targetBalls && celebrateModal) {
+            celebrateModal.style.display = 'flex';
+            launchConfetti();
         }
     }
 

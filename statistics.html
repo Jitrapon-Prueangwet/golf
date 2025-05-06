@@ -87,27 +87,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>Practice History</h1>
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <nav class="mobile-nav" id="mobile-nav">
-                <ul>
-                    <li><button id="signup-btn">Sign Up</button></li>
-                    <li><button id="login-btn">Log In</button></li>
-                    <li id="user-status" style="display:none; flex-direction: column; align-items: center;">
-                        <span id="user-email"></span>
-                        <button id="logout-btn" role="menuitem" style="margin-top: 0.5rem;">
-                            Log Out
-                        </button>
-                    </li>
-                    <li><a href="index.html">Practice</a></li>
-                    <li><a href="statistics.html" class="active">History</a></li>
-                    <li><button id="open-subscribe-landing">Subscription Options</button></li>
-                </ul>
-            </nav>
+            <a href="index.html" class="back-icon" style="display:inline-block;vertical-align:middle;margin-right:1rem;margin-top:0.2rem;transition:transform 0.2s;background:none;border:none;padding:0.2rem;cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1 style="display:inline-block;vertical-align:middle;">Practice History</h1>
         </header>
 
         <div class="history-container">
@@ -155,6 +140,7 @@
                     </svg>
                     Back to Practice
                 </a>
+                <button id="cleanup-history-btn" style="margin-left: 2rem; background: var(--hermes-orange); color: #fff; border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-size: 1.1rem; cursor: pointer; transition: background 0.2s;">Clean Up History</button>
             </div>
         </div>
     </div>
@@ -253,6 +239,26 @@
 
             // Auto-refresh every 30 seconds
             setInterval(fetchHistory, 30000);
+
+            // Add event listener for cleanup button
+            const cleanupBtn = document.getElementById('cleanup-history-btn');
+            if (cleanupBtn) {
+                cleanupBtn.addEventListener('click', async () => {
+                    if (!confirm('Are you sure you want to delete all your practice history? This cannot be undone.')) return;
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        alert('You must be logged in to clean up history.');
+                        return;
+                    }
+                    const { error } = await supabase.from('practice_sessions').delete().eq('user_id', user.id);
+                    if (error) {
+                        alert('Error cleaning up history.');
+                    } else {
+                        alert('History cleaned up!');
+                        fetchHistory();
+                    }
+                });
+            }
         });
     </script>
 </body>
