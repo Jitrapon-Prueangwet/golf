@@ -3,18 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Practice Statistics</title>
+    <title>Practice History - Golf Practice Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .history-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .history-table th,
+        .history-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .history-table th {
+            background: var(--hermes-orange);
+            color: white;
+            font-weight: bold;
+        }
+        .history-table tr:hover {
+            background: #f5f5f5;
+        }
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .filter-container select,
+        .filter-container input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .date-cell {
+            white-space: nowrap;
+        }
+        .success-rate {
+            font-weight: bold;
+        }
+        .success-rate.high {
+            color: #28a745;
+        }
+        .success-rate.medium {
+            color: #ffc107;
+        }
+        .success-rate.low {
+            color: #dc3545;
+        }
+        .back-button:hover {
+            background-color: var(--hermes-orange);
+            color: white;
+            transform: translateX(-5px);
+        }
+        .back-button svg {
+            transition: transform 0.3s ease;
+        }
+        .back-button:hover svg {
+            transform: translateX(-3px);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="index.html" class="back-icon" aria-label="Back to Practice Tracker">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </a>
-            <h1>Golf Practice Statistics</h1>
+            <h1>Practice History</h1>
             <div class="hamburger" id="hamburger">
                 <span></span>
                 <span></span>
@@ -22,22 +95,25 @@
             </div>
             <nav class="mobile-nav" id="mobile-nav">
                 <ul>
-                    <li><a href="index.html">Practice Tracker</a></li>
-                    <li><a href="statistics.html" class="active">Statistics</a></li>
+                    <li><button id="signup-btn">Sign Up</button></li>
+                    <li><button id="login-btn">Log In</button></li>
                     <li id="user-status" style="display:none; flex-direction: column; align-items: center;">
                         <span id="user-email"></span>
                         <button id="logout-btn" role="menuitem" style="margin-top: 0.5rem;">
                             Log Out
                         </button>
                     </li>
+                    <li><a href="index.html">Practice</a></li>
+                    <li><a href="statistics.html" class="active">History</a></li>
+                    <li><button id="open-subscribe-landing">Subscription Options</button></li>
                 </ul>
             </nav>
         </header>
 
-        <main>
-            <div class="club-selector">
-                <button class="club-btn active" data-club="iron" id="iron-btn">Iron</button>
-                <select id="iron-dropdown" style="display:none; margin-left: 1rem;">
+        <div class="history-container">
+            <div class="filter-container">
+                <select id="club-filter">
+                    <option value="">All Clubs</option>
                     <option value="3-iron">3 Iron</option>
                     <option value="4-iron">4 Iron</option>
                     <option value="5-iron">5 Iron</option>
@@ -47,64 +123,137 @@
                     <option value="9-iron">9 Iron</option>
                     <option value="pw">PW</option>
                     <option value="sw">SW</option>
-                </select>
-                <button class="club-btn" data-club="driver" id="driver-btn">Driver</button>
-                <select id="driver-dropdown" style="display:none; margin-left: 1rem;">
                     <option value="driver">Driver</option>
                     <option value="3-wood">3 Wood</option>
                     <option value="5-wood">5 Wood</option>
                     <option value="7-wood">7 Wood</option>
+                    <option value="putt">Putt</option>
                 </select>
-                <button class="club-btn" data-club="putt">Putt</button>
+                <input type="date" id="date-filter" placeholder="Filter by date">
             </div>
 
-            <div class="stats-container">
-                <div class="stats-overview">
-                    <div class="stat-card">
-                        <h3>Overall Performance</h3>
-                        <canvas id="overall-chart"></canvas>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Recent Sessions</h3>
-                        <canvas id="sessions-chart"></canvas>
-                    </div>
-                </div>
-
-                <div class="detailed-stats">
-                    <div class="stat-card">
-                        <h3>Club Performance</h3>
-                        <div class="club-stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-label">Total Attempts</span>
-                                <span class="stat-value" id="total-attempts">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Successful Hits</span>
-                                <span class="stat-value" id="successful-hits">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Success Rate</span>
-                                <span class="stat-value" id="success-rate">0%</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Average Distance</span>
-                                <span class="stat-value" id="avg-distance">0 yards</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Balls Hit</span>
-                                <span class="stat-value" id="balls-hit">0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <h3>Progress Over Time</h3>
-                        <canvas id="progress-chart"></canvas>
-                    </div>
-                </div>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>date</th>
+                        <th>club</th>
+                        <th>target_distance</th>
+                        <th>target_balls</th>
+                        <th>balls_hit</th>
+                        <th>balls_missed</th>
+                        <th>success_rate</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <!-- History data will be inserted here -->
+                </tbody>
+            </table>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="index.html" class="back-button" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--hermes-orange); font-size: 1.1rem; padding: 0.75rem 1.5rem; border: 2px solid var(--hermes-orange); border-radius: 8px; transition: all 0.3s ease;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Practice
+                </a>
             </div>
-        </main>
+        </div>
     </div>
-    <script src="statistics.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Supabase client initialization
+            const SUPABASE_URL = 'https://xnnhtdvvjyqsoxyqwzhe.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhubmh0ZHZ2anlxc294eXF3emhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0MTg2MjUsImV4cCI6MjA2MTk5NDYyNX0.qzTeP_dBbGETQKyf7tt4XBvGrZaWAYP38q0VLsS1jZc';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // DOM Elements
+            const historyBody = document.getElementById('history-body');
+            const clubFilter = document.getElementById('club-filter');
+            const dateFilter = document.getElementById('date-filter');
+
+            // Format date and time
+            function formatDateTime(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const isToday = date.toDateString() === now.toDateString();
+                
+                const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateString = date.toLocaleDateString([], { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                return isToday ? `Today at ${timeString}` : `${dateString} at ${timeString}`;
+            }
+
+            // Fetch and display history
+            async function fetchHistory() {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    historyBody.innerHTML = '<tr><td colspan="7" class="no-data">Please log in to view your practice history</td></tr>';
+                    return;
+                }
+
+                let query = supabase
+                    .from('practice_sessions')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('date', { ascending: false });
+
+                // Apply filters
+                if (clubFilter.value) {
+                    query = query.eq('club', clubFilter.value);
+                }
+                if (dateFilter.value) {
+                    const startDate = new Date(dateFilter.value);
+                    const endDate = new Date(dateFilter.value);
+                    endDate.setDate(endDate.getDate() + 1);
+                    query = query.gte('date', startDate.toISOString())
+                               .lt('date', endDate.toISOString());
+                }
+
+                const { data, error } = await query;
+
+                if (error) {
+                    console.error('Error fetching history:', error);
+                    historyBody.innerHTML = '<tr><td colspan="7" class="no-data">Error loading history</td></tr>';
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="7" class="no-data">No practice sessions found</td></tr>';
+                    return;
+                }
+
+                // Display sessions
+                historyBody.innerHTML = data.map(session => {
+                    const successRate = session.success_rate;
+                    const successRateClass = successRate >= 80 ? 'high' : successRate >= 50 ? 'medium' : 'low';
+                    return `
+                        <tr>
+                            <td class="date-cell">${formatDateTime(session.date)}</td>
+                            <td>${session.club}</td>
+                            <td>${session.target_distance} yards</td>
+                            <td>${session.target_balls}</td>
+                            <td>${session.balls_hit}</td>
+                            <td>${session.balls_missed}</td>
+                            <td class="success-rate ${successRateClass}">${Math.round(successRate)}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Event listeners for filters
+            clubFilter.addEventListener('change', fetchHistory);
+            dateFilter.addEventListener('change', fetchHistory);
+
+            // Initial fetch
+            fetchHistory();
+
+            // Auto-refresh every 30 seconds
+            setInterval(fetchHistory, 30000);
+        });
+    </script>
 </body>
 </html> 

@@ -175,10 +175,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Result Handling
-    function handleResult(isHit) {
+    async function handleResult(isHit) {
         // Check if user is logged in
-        const session = supabase.auth.getSession ? supabase.auth.getSession() : null;
-        if (session && session.user === null) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
             alert('You must be logged in to track stats.');
             return;
         }
@@ -197,6 +197,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isHit) {
             successfulHits += 1;
         }
+        // Calculate balls_missed and success_rate
+        const ballsMissed = totalAttempts - successfulHits;
+        const successRate = (successfulHits / totalAttempts) * 100;
+        // Get current timestamp
+        const currentTimestamp = new Date().toISOString();
+        // Save this attempt to Supabase (revised columns)
+        await supabase.from('practice_sessions').insert([
+            {
+                user_id: user.id,
+                date: currentTimestamp,
+                club: currentClub,
+                target_distance: targetDistance,
+                target_balls: targetBalls,
+                balls_hit: successfulHits,
+                balls_missed: ballsMissed,
+                success_rate: successRate
+            }
+        ]);
         // Update UI
         updateProgress();
         updateStats();
@@ -239,14 +257,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update Statistics
-    function updateStats() {
+    async function fetchAllTimeStats(club) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return { totalAttempts: 0, successfulHits: 0 };
+        }
+        const { data, error } = await supabase
+            .from('practice_sessions')
+            .select('total_attempts, successful_hits')
+            .eq('club_type', club)
+            .eq('user_id', user.id);
+        if (error) {
+            console.error('Error fetching stats:', error);
+            return { totalAttempts: 0, successfulHits: 0 };
+        }
+        let totalAttempts = 0;
+        let successfulHits = 0;
+        data.forEach(row => {
+            totalAttempts += row.total_attempts || 0;
+            successfulHits += row.successful_hits || 0;
+        });
+        return { totalAttempts, successfulHits };
+    }
+
+    async function updateStats() {
+        // Update the Balls Hit display to show only the current session's stats
         const targetBalls = parseInt(ballsInput.value) || 1;
-        totalAttemptsText.textContent = totalAttempts;
-        successfulHitsText.textContent = successfulHits;
-        // Update balls hit info
-        const percent = successfulHits > 0 ? Math.round((successfulHits / targetBalls) * 100) : 0;
-        ballsHitInfo.textContent = `Balls Hit: ${successfulHits} / ${targetBalls} (${percent}%)`;
-        // Update actual hits info below number of balls
+        const percent = totalAttempts > 0 ? Math.round((successfulHits / totalAttempts) * 100) : 0;
+        ballsHitInfo.textContent = `Balls Hit: ${successfulHits} / ${totalAttempts} (${percent}%)`;
+        // All-time stats remain in the boxes below
+        const club = currentClub;
+        const { totalAttempts: allTimeAttempts, successfulHits: allTimeHits } = await fetchAllTimeStats(club);
+        totalAttemptsText.textContent = allTimeAttempts;
+        successfulHitsText.textContent = allTimeHits;
         actualHitsInfo.textContent = `Balls Hit: ${successfulHits}`;
     }
 
