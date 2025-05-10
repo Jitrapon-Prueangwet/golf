@@ -9,6 +9,9 @@
     <!-- Add Google Calendar API client library -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
+    <!-- FullCalendar CSS and JS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
     <style>
         .calendar-container {
             max-width: 800px;
@@ -103,9 +106,7 @@
         
         <div id="error-message" class="error-message" style="display: none;"></div>
         
-        <ul class="tournament-list" id="tournament-list">
-            <!-- Tournament items will be inserted here -->
-        </ul>
+        <div id="calendar"></div>
     </div>
 
     <script>
@@ -175,32 +176,40 @@
                     'timeMin': (new Date()).toISOString(),
                     'showDeleted': false,
                     'singleEvents': true,
-                    'maxResults': 10,
+                    'maxResults': 50,
                     'orderBy': 'startTime'
                 });
 
-                const events = response.result.items;
-                const tournamentList = document.getElementById('tournament-list');
-                tournamentList.innerHTML = '';
+                const events = response.result.items.map(event => ({
+                    title: event.summary,
+                    start: event.start.dateTime || event.start.date,
+                    end: event.end.dateTime || event.end.date,
+                    description: event.description || '',
+                    location: event.location || ''
+                }));
 
-                if (events.length === 0) {
-                    tournamentList.innerHTML = '<li class="tournament-item">No upcoming tournaments found.</li>';
-                } else {
-                    events.forEach(event => {
-                        const start = event.start.dateTime || event.start.date;
-                        const end = event.end.dateTime || event.end.date;
-                        
-                        const tournamentItem = document.createElement('li');
-                        tournamentItem.className = 'tournament-item';
-                        tournamentItem.innerHTML = `
-                            <div class="tournament-title">${event.summary}</div>
-                            <div class="tournament-date">${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}</div>
-                            ${event.location ? `<div class="tournament-location">📍 ${event.location}</div>` : ''}
-                            ${event.description ? `<div class="tournament-description">${event.description}</div>` : ''}
-                        `;
-                        tournamentList.appendChild(tournamentItem);
-                    });
-                }
+                // Render FullCalendar
+                var calendarEl = document.getElementById('calendar');
+                calendarEl.innerHTML = '';
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    height: 650,
+                    events: events,
+                    eventClick: function(info) {
+                        let details = info.event.title + '\n' +
+                            (info.event.start ? info.event.start.toLocaleString() : '') +
+                            (info.event.end ? ' - ' + info.event.end.toLocaleString() : '');
+                        if (info.event.extendedProps.location) details += '\nLocation: ' + info.event.extendedProps.location;
+                        if (info.event.extendedProps.description) details += '\n' + info.event.extendedProps.description;
+                        alert(details);
+                    },
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    }
+                });
+                calendar.render();
             } catch (err) {
                 document.getElementById('error-message').textContent = 'Error loading tournaments: ' + err.message;
                 document.getElementById('error-message').style.display = 'block';
