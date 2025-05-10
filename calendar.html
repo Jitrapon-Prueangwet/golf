@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Calendar</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <!-- Add Google Calendar API client library -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <style>
+        .calendar-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 2rem;
+        }
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .calendar-header h1 {
+            color: var(--hermes-orange);
+            font-size: 2rem;
+            margin: 0;
+        }
+        .tournament-list {
+            list-style: none;
+            padding: 0;
+        }
+        .tournament-item {
+            border-bottom: 1px solid #eee;
+            padding: 1rem 0;
+        }
+        .tournament-item:last-child {
+            border-bottom: none;
+        }
+        .tournament-title {
+            font-size: 1.2rem;
+            color: var(--hermes-orange-dark);
+            font-weight: bold;
+        }
+        .tournament-date {
+            color: #666;
+            font-size: 1rem;
+        }
+        .tournament-location {
+            color: #333;
+            font-size: 1rem;
+        }
+        .auth-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .auth-button {
+            background: var(--hermes-orange);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .auth-button:hover {
+            background: var(--hermes-orange-dark);
+        }
+        .loading {
+            text-align: center;
+            color: var(--hermes-orange);
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <a href="index.html" class="back-icon" style="margin-right:1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1>Tournament Calendar</h1>
+        </div>
+        
+        <div id="auth-container" class="auth-container">
+            <button id="authorize-button" class="auth-button">Sign in with Google</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Loading tournaments...
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        
+        <ul class="tournament-list" id="tournament-list">
+            <!-- Tournament items will be inserted here -->
+        </ul>
+    </div>
+
+    <script>
+        // Your Google Calendar API credentials
+        const CLIENT_ID = 'YOUR_CLIENT_ID';
+        const API_KEY = 'YOUR_API_KEY';
+        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+        const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
+
+        document.getElementById('authorize-button').style.display = 'none';
+        document.getElementById('loading').style.display = 'none';
+
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+            });
+            gapiInited = true;
+            maybeEnableButtons();
+        }
+
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // defined later
+            });
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                document.getElementById('authorize-button').style.display = 'block';
+            }
+        }
+
+        function handleAuthClick() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) {
+                    throw (resp);
+                }
+                document.getElementById('authorize-button').style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                await listUpcomingEvents();
+            };
+
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        async function listUpcomingEvents() {
+            try {
+                const response = await gapi.client.calendar.events.list({
+                    'calendarId': 'primary',
+                    'timeMin': (new Date()).toISOString(),
+                    'showDeleted': false,
+                    'singleEvents': true,
+                    'maxResults': 10,
+                    'orderBy': 'startTime'
+                });
+
+                const events = response.result.items;
+                const tournamentList = document.getElementById('tournament-list');
+                tournamentList.innerHTML = '';
+
+                if (events.length === 0) {
+                    tournamentList.innerHTML = '<li class="tournament-item">No upcoming tournaments found.</li>';
+                } else {
+                    events.forEach(event => {
+                        const start = event.start.dateTime || event.start.date;
+                        const end = event.end.dateTime || event.end.date;
+                        
+                        const tournamentItem = document.createElement('li');
+                        tournamentItem.className = 'tournament-item';
+                        tournamentItem.innerHTML = `
+                            <div class="tournament-title">${event.summary}</div>
+                            <div class="tournament-date">${new Date(start).toLocaleString()} - ${new Date(end).toLocaleString()}</div>
+                            ${event.location ? `<div class="tournament-location">📍 ${event.location}</div>` : ''}
+                            ${event.description ? `<div class="tournament-description">${event.description}</div>` : ''}
+                        `;
+                        tournamentList.appendChild(tournamentItem);
+                    });
+                }
+            } catch (err) {
+                document.getElementById('error-message').textContent = 'Error loading tournaments: ' + err.message;
+                document.getElementById('error-message').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        document.getElementById('authorize-button').addEventListener('click', handleAuthClick);
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+</body>
+</html> 

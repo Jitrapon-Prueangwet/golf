@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const setGoalConfettiCanvas = document.getElementById('set-goal-confetti-canvas');
     const targetLabel = document.getElementById('target-label');
     const targetUnit = document.getElementById('target-unit');
+    const nightModeToggle = document.getElementById('night-mode-toggle');
+    const moonIcon = document.querySelector('.moon-icon');
+    const sunIcon = document.querySelector('.sun-icon');
 
     // State
     let currentClub = 'iron';
@@ -657,4 +660,34 @@ document.addEventListener('DOMContentLoaded', () => {
             canvas.style.display = 'none';
         }, 3000);
     }
+
+    // Night mode functionality
+    function initNightMode() {
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            moonIcon.style.display = 'none';
+            sunIcon.style.display = 'inline';
+        }
+    }
+
+    if (nightModeToggle) {
+        nightModeToggle.addEventListener('click', () => {
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDarkMode) {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('darkMode', 'false');
+                moonIcon.style.display = 'inline';
+                sunIcon.style.display = 'none';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('darkMode', 'true');
+                moonIcon.style.display = 'none';
+                sunIcon.style.display = 'inline';
+            }
+        });
+    }
+
+    // Initialize night mode
+    initNightMode();
 });

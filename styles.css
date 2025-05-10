@@ -7,6 +7,13 @@
     --border-color: #E0E0E0;
 }
 
+/* Night mode variables */
+[data-theme="dark"] {
+    --text-color: #E0E0E0;
+    --background-color: #1A1A1A;
+    --border-color: #333333;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -550,4 +557,67 @@ input[type="number"]:focus {
 .back-icon:hover {
     background: var(--hermes-orange-light);
     transform: scale(1.1);
+}
+
+/* Night mode toggle button styles */
+.night-mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+    width: 100%;
+    text-align: left;
+}
+
+.night-mode-btn:hover {
+    background: var(--hermes-orange-light);
+    color: #fff;
+}
+
+.moon-icon, .sun-icon {
+    font-size: 1.2rem;
+}
+
+/* Night mode specific styles */
+[data-theme="dark"] .modal-content {
+    background: #2A2A2A;
+    color: var(--text-color);
+}
+
+[data-theme="dark"] input[type="number"] {
+    background-color: #333333;
+    color: var(--text-color);
+    border-color: #444444;
+}
+
+[data-theme="dark"] .mobile-nav {
+    background: #2A2A2A;
+    border-color: #444444;
+}
+
+[data-theme="dark"] .stat-card {
+    background: #2A2A2A;
+}
+
+[data-theme="dark"] .stat-item {
+    background: #333333;
+}
+
+[data-theme="dark"] .history-table {
+    background: #2A2A2A;
+}
+
+[data-theme="dark"] .history-table th {
+    background: var(--hermes-orange-dark);
+}
+
+[data-theme="dark"] .history-table tr:hover {
+    background: #333333;
 } 
