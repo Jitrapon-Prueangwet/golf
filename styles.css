@@ -620,4 +620,9 @@ input[type="number"]:focus {
 
 [data-theme="dark"] .history-table tr:hover {
     background: #333333;
+}
+
+[data-theme="dark"] .miss {
+    background-color: #444 !important;
+    color: #fff !important;
 } 

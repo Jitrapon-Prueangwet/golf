@@ -85,16 +85,16 @@
 <body>
     <div class="auth-container" id="auth-container"></div>
     <div class="calendar-container" id="calendar-app" style="display:none;">
-        <div class="calendar-container">
-            <div class="calendar-header">
-                <a href="index.html" class="back-icon" style="margin-right:1rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                </a>
-                <h1>Tournament Calendar</h1>
-            </div>
-
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <a href="index.html" class="back-icon" style="margin-right:1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <h1>Tournament Calendar</h1>
+        </div>
+        
             <!-- Month and Year Selectors -->
             <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem;">
                 <select id="month-select" style="padding:0.5rem; border-radius:5px; border:1px solid #ccc; font-size:1rem;"></select>
@@ -200,8 +200,9 @@
         // --- Fetch tournaments from Supabase for a month/year ---
         async function fetchTournaments(month, year) {
             if (!currentUser) return [];
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
             const fromDate = `${year}-${(month+1).toString().padStart(2, '0')}-01`;
-            const toDate = `${year}-${(month+1).toString().padStart(2, '0')}-31`;
+            const toDate = `${year}-${(month+1).toString().padStart(2, '0')}-${daysInMonth.toString().padStart(2, '0')}`;
             let { data, error } = await supabase
                 .from('tournaments')
                 .select('*')
@@ -390,4 +391,4 @@
         };
     </script>
 </body>
-</html>
+</html> 
