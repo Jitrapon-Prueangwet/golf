@@ -6,9 +6,6 @@
     <title>Tournament Calendar</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <!-- Add Google Calendar API client library -->
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
     <!-- FullCalendar CSS and JS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
@@ -86,141 +83,311 @@
     </style>
 </head>
 <body>
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <a href="index.html" class="back-icon" style="margin-right:1rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </a>
-            <h1>Tournament Calendar</h1>
+    <div class="auth-container" id="auth-container"></div>
+    <div class="calendar-container" id="calendar-app" style="display:none;">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <a href="index.html" class="back-icon" style="margin-right:1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--hermes-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <h1>Tournament Calendar</h1>
+            </div>
+
+            <!-- Month and Year Selectors -->
+            <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem;">
+                <select id="month-select" style="padding:0.5rem; border-radius:5px; border:1px solid #ccc; font-size:1rem;"></select>
+                <select id="year-select" style="padding:0.5rem; border-radius:5px; border:1px solid #ccc; font-size:1rem;"></select>
+            </div>
+
+            <!-- Tournament Input Form -->
+            <form id="tournament-form" autocomplete="off" style="margin-bottom:2rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="title" placeholder="Tournament Title" required autocomplete="off" style="flex:2; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                <input type="date" id="date" required style="flex:1; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                <input type="text" id="location" placeholder="Location" required style="flex:2; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                <button type="submit" class="auth-button" style="flex:1; min-width:120px;">Add Tournament</button>
+            </form>
+
+            <!-- Dynamic Calendar -->
+            <div id="custom-calendar">
+                <div id="calendar-header-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <!-- Calendar header will be rendered here -->
+                </div>
+                <table style="width:100%; border-collapse:collapse; background:#fff;">
+                    <thead>
+                        <tr style="border-bottom:1px solid #ddd;">
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">SUN</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">MON</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">TUE</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">WED</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">THU</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">FRI</th>
+                            <th style="padding:0.5rem 0; color:#444; font-size:1rem; letter-spacing:0.1em;">SAT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendar-body">
+                        <!-- Calendar days will be rendered here by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal for adding tournament by clicking a date -->
+            <div id="modal-bg" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.25); z-index:1000; align-items:center; justify-content:center;">
+                <div id="modal-form" style="background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.15); padding:2rem; min-width:300px; max-width:90vw; position:relative;">
+                    <button id="modal-close" style="position:absolute; top:0.5rem; right:0.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                    <h2 style="margin-top:0;">Add Tournament</h2>
+                    <form id="modal-tournament-form" autocomplete="off">
+                        <input type="text" id="modal-title" placeholder="Tournament Title" required autocomplete="off" style="width:100%; margin-bottom:1rem; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                        <input type="text" id="modal-location" placeholder="Location" required style="width:100%; margin-bottom:1rem; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                        <input type="date" id="modal-date" required style="width:100%; margin-bottom:1rem; padding:0.5rem; border-radius:5px; border:1px solid #ccc;">
+                        <button type="submit" class="auth-button" style="width:100%;">Add Tournament</button>
+                    </form>
+                </div>
+            </div>
         </div>
-        
-        <div id="auth-container" class="auth-container">
-            <button id="authorize-button" class="auth-button">Sign in with Google</button>
-        </div>
-        
-        <div id="loading" class="loading" style="display: none;">
-            Loading tournaments...
-        </div>
-        
-        <div id="error-message" class="error-message" style="display: none;"></div>
-        
-        <div id="calendar"></div>
     </div>
 
-    <!-- Your Google Calendar API credentials -->
     <script>
-        const CLIENT_ID = '897890120048-j643h6ef8u8arl75iad4ti8avj1pnbj1.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyDeAz2UfT94U-p-PyTLbe8j4CrMJ4BUYu8';
-        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
-        const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+        // --- Supabase Setup ---
+        const supabaseUrl = 'https://tntltflyjoqaprjrzeju.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRudGx0Zmx5am9xYXByanJ6ZWp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5NzM3MzMsImV4cCI6MjA2MjU0OTczM30.5wzvob6A-QqpEnKM6Solmexm5NAcCNGMeAVSAXBLJxM';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
+        // --- Auth UI ---
+        const calendarApp = document.getElementById('calendar-app');
+        let currentUser = null;
 
-        document.getElementById('authorize-button').style.display = 'none';
-        document.getElementById('loading').style.display = 'none';
-
-        function gapiLoaded() {
-            gapi.load('client', initializeGapiClient);
-        }
-
-        async function initializeGapiClient() {
-            await gapi.client.init({
-                apiKey: API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
-            });
-            gapiInited = true;
-            maybeEnableButtons();
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: '', // defined later
-            });
-            gisInited = true;
-            maybeEnableButtons();
-        }
-
-        function maybeEnableButtons() {
-            if (gapiInited && gisInited) {
-                document.getElementById('authorize-button').style.display = 'block';
-            }
-        }
-
-        function handleAuthClick() {
-            tokenClient.callback = async (resp) => {
-                if (resp.error !== undefined) {
-                    throw (resp);
-                }
-                document.getElementById('authorize-button').style.display = 'none';
-                document.getElementById('loading').style.display = 'block';
-                await listUpcomingEvents();
-            };
-
-            if (gapi.client.getToken() === null) {
-                tokenClient.requestAccessToken({prompt: 'consent'});
+        async function checkAuth() {
+            const { data: { user } } = await supabase.auth.getUser();
+            currentUser = user;
+            if (user) {
+                calendarApp.style.display = '';
+                renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
             } else {
-                tokenClient.requestAccessToken({prompt: ''});
+                // Redirect to login page if not authenticated
+                window.location.href = 'login.html';
             }
         }
+        checkAuth();
+        supabase.auth.onAuthStateChange((_event, session) => {
+            checkAuth();
+        });
 
-        async function listUpcomingEvents() {
-            try {
-                const response = await gapi.client.calendar.events.list({
-                    'calendarId': 'primary',
-                    'timeMin': (new Date()).toISOString(),
-                    'showDeleted': false,
-                    'singleEvents': true,
-                    'maxResults': 50,
-                    'orderBy': 'startTime'
+        // --- Month and Year Selectors ---
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        const monthSelect = document.getElementById('month-select');
+        const yearSelect = document.getElementById('year-select');
+        const currentYear = new Date().getFullYear();
+        for (let y = 2025; y <= currentYear + 20; y++) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yearSelect.appendChild(opt);
+        }
+        for (let m = 0; m < 12; m++) {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = monthNames[m];
+            monthSelect.appendChild(opt);
+        }
+        monthSelect.value = new Date().getMonth();
+        yearSelect.value = new Date().getFullYear();
+
+        // --- Fetch tournaments from Supabase for a month/year ---
+        async function fetchTournaments(month, year) {
+            if (!currentUser) return [];
+            const fromDate = `${year}-${(month+1).toString().padStart(2, '0')}-01`;
+            const toDate = `${year}-${(month+1).toString().padStart(2, '0')}-31`;
+            let { data, error } = await supabase
+                .from('tournaments')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .gte('date', fromDate)
+                .lte('date', toDate);
+            return data || [];
+        }
+
+        // --- Insert a new tournament into Supabase ---
+        async function addTournament(title, date, location) {
+            if (!currentUser) return;
+            let { data, error } = await supabase
+                .from('tournaments')
+                .insert([{ title, date, location, user_id: currentUser.id }]);
+            return data;
+        }
+
+        // --- Supabase Update and Delete Functions ---
+        async function updateTournament(id, title, date, location) {
+            if (!currentUser) return;
+            let { data, error } = await supabase
+                .from('tournaments')
+                .update({ title, date, location })
+                .eq('id', id)
+                .eq('user_id', currentUser.id);
+            return data;
+        }
+        async function deleteTournament(id) {
+            if (!currentUser) return;
+            let { data, error } = await supabase
+                .from('tournaments')
+                .delete()
+                .eq('id', id)
+                .eq('user_id', currentUser.id);
+            return data;
+        }
+
+        // --- Calendar Rendering ---
+        async function renderCalendar(month, year) {
+            // Header
+            document.getElementById('calendar-header-bar').innerHTML = `
+                <span style="font-size:2.5rem; font-weight:600; letter-spacing:0.1em;">${(month+1).toString().padStart(2, '0')}</span>
+                <span style="font-size:2.2rem; font-weight:500; letter-spacing:0.2em;">${monthNames[month].toUpperCase()}</span>
+                <span style="font-size:2.5rem; font-weight:600; letter-spacing:0.1em;">${year}</span>
+            `;
+            // Fetch tournaments for this month/year
+            const tournaments = await fetchTournaments(month, year);
+            // Days
+            const daysInMonth = new Date(year, month+1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            let html = '';
+            let day = 1;
+            for (let week = 0; week < 6; week++) {
+                html += '<tr>';
+                for (let d = 0; d < 7; d++) {
+                    if ((week === 0 && d < firstDay) || day > daysInMonth) {
+                        html += '<td style="height:60px; border:1px solid #eee;"></td>';
+                    } else {
+                        const dateStr = `${year}-${(month+1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        const todaysTournaments = tournaments.filter(t => t.date === dateStr);
+                        html += `<td style="vertical-align:top; height:60px; border:1px solid #eee; position:relative; cursor:pointer;" data-date="${dateStr}">
+                            <div style="font-weight:600; color:#444;">${day}</div>`;
+                        todaysTournaments.forEach(t => {
+                            html += `<div class=\"tournament-badge\" title=\"${t.title} - ${t.location}\" style=\"background:var(--hermes-orange, #ff9800); color:#fff; border-radius:6px; padding:2px 6px; margin-top:4px; font-size:0.85rem; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; position:relative;\">
+                                <span onclick=\"alert('Title: ${t.title}\\nLocation: ${t.location}\\nDate: ${t.date}')\">${t.title}</span>
+                                <button class='edit-btn' data-id='${t.id}' data-title='${t.title}' data-date='${t.date}' data-location='${t.location}' style='margin-left:4px; background:#fff; color:#ff9800; border:none; cursor:pointer; font-size:0.9em; border-radius:3px; padding:0 4px;'>✎</button>
+                                <button class='delete-btn' data-id='${t.id}' style='margin-left:2px; background:#fff; color:#dc3545; border:none; cursor:pointer; font-size:0.9em; border-radius:3px; padding:0 4px;'>🗑</button>
+                            </div>`;
+                        });
+                        html += '</td>';
+                        day++;
+                    }
+                }
+                html += '</tr>';
+                if (day > daysInMonth) break;
+            }
+            document.getElementById('calendar-body').innerHTML = html;
+
+            // Add click event listeners to date cells
+            document.querySelectorAll('#calendar-body td[data-date]').forEach(cell => {
+                cell.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('tournament-badge') || e.target.classList.contains('edit-btn') || e.target.classList.contains('delete-btn')) return;
+                    showModal(this.getAttribute('data-date'));
                 });
-
-                const events = response.result.items.map(event => ({
-                    title: event.summary,
-                    start: event.start.dateTime || event.start.date,
-                    end: event.end.dateTime || event.end.date,
-                    description: event.description || '',
-                    location: event.location || ''
-                }));
-
-                // Render FullCalendar
-                var calendarEl = document.getElementById('calendar');
-                calendarEl.innerHTML = '';
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    height: 650,
-                    events: events,
-                    eventClick: function(info) {
-                        let details = info.event.title + '\n' +
-                            (info.event.start ? info.event.start.toLocaleString() : '') +
-                            (info.event.end ? ' - ' + info.event.end.toLocaleString() : '');
-                        if (info.event.extendedProps.location) details += '\nLocation: ' + info.event.extendedProps.location;
-                        if (info.event.extendedProps.description) details += '\n' + info.event.extendedProps.description;
-                        alert(details);
-                    },
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            });
+            // Edit button listeners
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showModal(this.getAttribute('data-date'), {
+                        id: this.getAttribute('data-id'),
+                        title: this.getAttribute('data-title'),
+                        date: this.getAttribute('data-date'),
+                        location: this.getAttribute('data-location')
+                    });
+                });
+            });
+            // Delete button listeners
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    if (confirm('Delete this tournament?')) {
+                        await deleteTournament(this.getAttribute('data-id'));
+                        await renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
                     }
                 });
-                calendar.render();
-            } catch (err) {
-                document.getElementById('error-message').textContent = 'Error loading tournaments: ' + err.message;
-                document.getElementById('error-message').style.display = 'block';
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
+            });
         }
 
-        document.getElementById('authorize-button').addEventListener('click', handleAuthClick);
+        // --- Tournament Form Handling ---
+        document.getElementById('tournament-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value.trim();
+            const date = document.getElementById('date').value;
+            const location = document.getElementById('location').value.trim();
+            if (title && date && location) {
+                await addTournament(title, date, location);
+                // Parse year and month from the date and update selectors
+                const [year, month] = date.split('-');
+                monthSelect.value = (parseInt(month, 10) - 1).toString();
+                yearSelect.value = year;
+                await renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+                this.reset();
+            }
+        });
+
+        // --- Month/Year Change Handling ---
+        monthSelect.addEventListener('change', function() {
+            renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+        });
+        yearSelect.addEventListener('change', function() {
+            renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+        });
+
+        // Initial render
+        renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+
+        // --- Modal Logic ---
+        const modalBg = document.getElementById('modal-bg');
+        const modalForm = document.getElementById('modal-tournament-form');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLocation = document.getElementById('modal-location');
+        const modalDate = document.getElementById('modal-date');
+        const modalClose = document.getElementById('modal-close');
+
+        let editingTournamentId = null;
+        function showModal(dateStr, tournament = null) {
+            modalBg.style.display = 'flex';
+            if (tournament) {
+                editingTournamentId = tournament.id;
+                modalTitle.value = tournament.title;
+                modalLocation.value = tournament.location;
+                modalDate.value = tournament.date;
+            } else {
+                editingTournamentId = null;
+                modalTitle.value = '';
+                modalLocation.value = '';
+                modalDate.value = dateStr;
+            }
+            modalTitle.focus();
+        }
+        function hideModal() {
+            modalBg.style.display = 'none';
+        }
+        modalClose.onclick = hideModal;
+        modalBg.onclick = function(e) { if (e.target === modalBg) hideModal(); };
+        modalForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const title = modalTitle.value.trim();
+            const date = modalDate.value;
+            const location = modalLocation.value.trim();
+            if (title && date && location) {
+                if (editingTournamentId) {
+                    await updateTournament(editingTournamentId, title, date, location);
+                } else {
+                    await addTournament(title, date, location);
+                }
+                // Switch calendar to the correct month/year
+                const [year, month] = date.split('-');
+                monthSelect.value = (parseInt(month, 10) - 1).toString();
+                yearSelect.value = year;
+                await renderCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+                hideModal();
+            }
+        };
     </script>
-    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
 </body>
-</html> 
+</html>
