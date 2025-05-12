@@ -81,10 +81,10 @@
     <div class="signup-container">
         <div class="signup-title">Sign Up</div>
         <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
-            <button type="button" style="background: #fff; color: #444; border: 1px solid #ccc; border-radius: 8px; font-size: 1.05rem; font-weight: 600; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.7rem; cursor: pointer; transition: box-shadow 0.2s;">
+            <button type="button" id="google-signup-btn" style="background: #fff; color: #444; border: 1px solid #ccc; border-radius: 8px; font-size: 1.05rem; font-weight: 600; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.7rem; cursor: pointer; transition: box-shadow 0.2s;">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 22px; height: 22px;"> Sign Up with Google
             </button>
-            <button type="button" style="background: #1877F3; color: #fff; border: none; border-radius: 8px; font-size: 1.05rem; font-weight: 600; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.7rem; cursor: pointer; transition: background 0.2s;">
+            <button type="button" id="facebook-signup-btn" style="background: #1877F3; color: #fff; border: none; border-radius: 8px; font-size: 1.05rem; font-weight: 600; padding: 0.7rem; display: flex; align-items: center; justify-content: center; gap: 0.7rem; cursor: pointer; transition: background 0.2s;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" style="width: 22px; height: 22px;"> Sign Up with Facebook
             </button>
         </div>
@@ -134,6 +134,13 @@
             errorDiv.textContent = '';
             document.getElementById('signup-form').reset();
         }
+    };
+
+    document.getElementById('google-signup-btn').onclick = async function() {
+        await supabase.auth.signInWithOAuth({ provider: 'google' });
+    };
+    document.getElementById('facebook-signup-btn').onclick = async function() {
+        await supabase.auth.signInWithOAuth({ provider: 'facebook' });
     };
     </script>
 </body>

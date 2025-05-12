@@ -299,6 +299,10 @@ input[type="number"]:focus {
         min-width: unset;
         max-width: unset;
     }
+    .tournament-badge {
+        max-width: 60px;
+        font-size: 0.75rem;
+    }
 }
 
 /* Hamburger styles */
@@ -629,4 +633,22 @@ input[type="number"]:focus {
 [data-theme="dark"] .miss {
     background-color: #444 !important;
     color: #fff !important;
+}
+
+/* Center Add Tournament button text */
+.auth-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Prevent calendar cell expansion for tournament badges */
+.tournament-badge {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
 } 
