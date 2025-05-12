@@ -3,95 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Tournament Calendar</title>
+    <title>Log In - Golf is Fun</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        body { background: #fafafa; }
+        body {
+            background: #fff;
+            color: #222;
+            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
         .login-container {
             max-width: 400px;
             margin: 5rem auto;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            padding: 2rem;
+            background: #F8F8F8;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            padding: 2.5rem 2rem 2rem 2rem;
             text-align: center;
         }
         .login-title {
-            font-size: 1.7rem;
-            font-weight: 600;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--hermes-orange, #FF4E00);
             margin-bottom: 1.5rem;
         }
-        .login-input {
-            width: 100%;
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            border-radius: 5px;
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .login-form input {
+            padding: 0.8rem;
+            border-radius: 8px;
             border: 1px solid #ccc;
             font-size: 1rem;
         }
-        .login-button {
-            background: var(--hermes-orange, #ff6600);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 8px;
+        .login-form button {
+            background: var(--hermes-orange, #FF4E00);
+            color: #fff;
             font-size: 1.1rem;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
             transition: background 0.2s;
-            width: 100%;
         }
-        .login-button:hover {
-            background: var(--hermes-orange-dark, #e65c00);
+        .login-form button:hover {
+            background: var(--hermes-orange-dark, #CC3E00);
+        }
+        .back-home {
+            display: block;
+            margin-top: 1.5rem;
+            color: #333;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+        .back-home:hover {
+            color: var(--hermes-orange, #FF4E00);
+        }
+        .logout-btn {
+            background: #888;
+            color: #fff;
+            font-size: 1rem;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: #555;
         }
         .login-error {
             color: #dc3545;
-            margin-bottom: 1rem;
+            margin-top: 1rem;
+            font-size: 1rem;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-title">Sign in to your account</div>
-        <form id="login-form" autocomplete="off">
-            <input type="email" id="login-email" class="login-input" placeholder="Email" required>
-            <input type="password" id="login-password" class="login-input" placeholder="Password" required>
-            <button type="submit" class="login-button">Sign In / Sign Up</button>
+    <div class="login-container" id="login-container">
+        <div class="login-title">Log In</div>
+        <form class="login-form" id="login-form">
+            <input type="email" placeholder="Email" required id="email">
+            <input type="password" placeholder="Password" required id="password">
+            <button type="submit">Log In</button>
         </form>
-        <div id="login-error" class="login-error"></div>
+        <div class="login-error" id="login-error"></div>
+        <a class="back-home" href="home.html">&larr; Back to Home</a>
     </div>
     <script>
-        const supabase = window.supabase.createClient(
-            'https://tntltflyjoqaprjrzeju.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRudGx0Zmx5am9xYXByanJ6ZWp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5NzM3MzMsImV4cCI6MjA2MjU0OTczM30.5wzvob6A-QqpEnKM6Solmexm5NAcCNGMeAVSAXBLJxM'
-        );
-        const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
+    // Supabase client setup
+    const SUPABASE_URL = 'https://tntltflyjoqaprjrzeju.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRudGx0Zmx5am9xYXByanJ6ZWp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5NzM3MzMsImV4cCI6MjA2MjU0OTczM30.5wzvob6A-QqpEnKM6Solmexm5NAcCNGMeAVSAXBLJxM';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // If already logged in, redirect to calendar
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) window.location.href = 'calendar.html';
-        });
-
-        loginForm.onsubmit = async function(e) {
+    function isLoggedIn() {
+        return localStorage.getItem('golfisfun_logged_in') === 'true' && localStorage.getItem('golfisfun_email');
+    }
+    function showLogout() {
+        const container = document.getElementById('login-container');
+        container.innerHTML = `
+            <div class="login-title">You are already logged in!</div>
+            <button class="logout-btn" id="logout-btn">Log Out</button>
+            <a class="back-home" href="home.html">&larr; Back to Home</a>
+        `;
+        document.getElementById('logout-btn').onclick = function() {
+            localStorage.removeItem('golfisfun_logged_in');
+            localStorage.removeItem('golfisfun_email');
+            window.location.reload();
+        };
+    }
+    if (isLoggedIn()) {
+        showLogout();
+    } else {
+        document.getElementById('login-form').onsubmit = async function(e) {
             e.preventDefault();
-            loginError.textContent = '';
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            // Try sign in
-            let { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (!error) {
-                window.location.href = 'calendar.html';
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            errorDiv.textContent = '';
+            // Supabase login
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                errorDiv.textContent = error.message || 'Login failed. Please try again.';
                 return;
             }
-            // If sign in fails, try sign up
-            let { error: signUpError } = await supabase.auth.signUp({ email, password });
-            if (!signUpError) {
-                alert('Check your email for a confirmation link, then sign in.');
-            } else {
-                loginError.textContent = (signUpError && signUpError.message) || 'Login/Signup failed.';
-            }
+            // Success: store login state and email
+            localStorage.setItem('golfisfun_logged_in', 'true');
+            localStorage.setItem('golfisfun_email', email);
+            window.location.href = 'home.html';
         };
+    }
     </script>
 </body>
 </html> 

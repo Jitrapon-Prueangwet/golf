@@ -6,36 +6,112 @@
     <title>Golf Practice Tracker</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--hermes-orange, #FF4E00);
+            letter-spacing: 0.1em;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .navbar-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: var(--hermes-orange, #FF4E00);
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 1.3rem;
+            border-radius: 50%;
+            margin-left: 2rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            position: relative;
+        }
+        .navbar-avatar:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        }
+        .navbar-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+            min-width: 180px;
+            z-index: 200;
+            flex-direction: column;
+            padding: 0.5rem 0;
+        }
+        .navbar-dropdown.show {
+            display: flex;
+        }
+        .navbar-dropdown a, .navbar-dropdown button {
+            color: #222;
+            text-decoration: none;
+            padding: 0.9rem 1.5rem;
+            font-size: 1rem;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+        .navbar-dropdown a:hover, .navbar-dropdown button:hover {
+            background: #F8F8F8;
+        }
+        .navbar-dropdown .logout-btn {
+            color: var(--hermes-orange, #FF4E00);
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .navbar-links a {
+            color: #333;
+            text-decoration: none;
+            font-size: 1.1rem;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .navbar-links a:hover {
+            color: var(--hermes-orange, #FF4E00);
+        }
+    </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="navbar-logo">Golf Mastery</div>
+        <div class="navbar-links" id="navbar-links">
+            <a href="home.html">Home</a>
+            <a href="signup.html">Sign Up</a>
+            <a href="login.html" id="login-link">Log In</a>
+        </div>
+    </nav>
     <div class="container">
         <header>
             <h1>Golf Practice Tracker</h1>
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <nav class="mobile-nav" id="mobile-nav">
-                <ul>
-                    <li><button id="signup-btn">Sign Up</button></li>
-                    <li><button id="login-btn">Log In</button></li>
-                    <li id="user-status" style="display:none; flex-direction: column; align-items: center;">
-                        <span id="user-email"></span>
-                        <button id="logout-btn" role="menuitem" style="margin-top: 0.5rem;">
-                            Log Out
-                        </button>
-                    </li>
-                    <li><a href="statistics.html">History</a></li>
-                    <li><a href="calendar.html">Calendar</a></li>
-                    <li><button id="open-subscribe-landing">Subscription Options</button></li>
-                    <li><button id="night-mode-toggle" class="night-mode-btn">
-                        <span class="moon-icon">🌙</span>
-                        <span class="sun-icon" style="display:none;">☀️</span>
-                        Night Mode
-                    </button></li>
-                </ul>
-            </nav>
         </header>
         
         <main>
@@ -165,5 +241,78 @@
         </div>
     </div>
     <script src="script.js"></script>
+    <script>
+    // Supabase session check
+    const SUPABASE_URL = 'https://tntltflyjoqaprjrzeju.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRudGx0Zmx5am9xYXByanJ6ZWp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5NzM3MzMsImV4cCI6MjA2MjU0OTczM30.5wzvob6A-QqpEnKM6Solmexm5NAcCNGMeAVSAXBLJxM';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    (async function() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            alert('You must be logged in to track stats.');
+            // Optionally redirect:
+            // window.location.href = 'login.html';
+        }
+    })();
+    </script>
+    <script>
+    // Navbar login state logic
+    (function() {
+        function isLoggedIn() {
+            return localStorage.getItem('golfisfun_logged_in') === 'true' && localStorage.getItem('golfisfun_email');
+        }
+        function getUserInitial() {
+            const email = localStorage.getItem('golfisfun_email') || '';
+            return email.charAt(0).toUpperCase();
+        }
+        const loginLink = document.getElementById('login-link');
+        const signupLink = document.querySelector('.navbar-links a[href="signup.html"]');
+        if (isLoggedIn() && loginLink) {
+            if (signupLink) signupLink.remove();
+            const initial = getUserInitial();
+            // Create avatar wrapper
+            const avatarWrapper = document.createElement('div');
+            avatarWrapper.style.position = 'relative';
+            avatarWrapper.style.display = 'inline-block';
+            // Create avatar
+            const avatar = document.createElement('span');
+            avatar.className = 'navbar-avatar';
+            avatar.title = localStorage.getItem('golfisfun_email');
+            avatar.textContent = initial;
+            avatar.tabIndex = 0;
+            avatarWrapper.appendChild(avatar);
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'navbar-dropdown';
+            dropdown.innerHTML = `
+                <a href="index.html">Practice</a>
+                <a href="calendar.html">Calendar</a>
+                <a href="statistics.html">History</a>
+                <button class="logout-btn">Log Out</button>
+            `;
+            avatarWrapper.appendChild(dropdown);
+            // Toggle dropdown
+            avatar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+            });
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                dropdown.classList.remove('show');
+            });
+            // Prevent dropdown from closing when clicking inside
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            // Log out button
+            dropdown.querySelector('.logout-btn').onclick = function() {
+                localStorage.removeItem('golfisfun_logged_in');
+                localStorage.removeItem('golfisfun_email');
+                window.location.reload();
+            };
+            loginLink.replaceWith(avatarWrapper);
+        }
+    })();
+    </script>
 </body>
 </html> 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf is Fun - Home</title>
+    <title>Golf Mastery - Home</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
@@ -29,6 +29,69 @@
             font-weight: bold;
             color: var(--hermes-orange, #FF4E00);
             letter-spacing: 0.1em;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .navbar-avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: var(--hermes-orange, #FF4E00);
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 1.3rem;
+            border-radius: 50%;
+            margin-left: 2rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            position: relative;
+        }
+        .navbar-avatar:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        }
+        .navbar-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+            min-width: 180px;
+            z-index: 200;
+            flex-direction: column;
+            padding: 0.5rem 0;
+        }
+        .navbar-dropdown.show {
+            display: flex;
+        }
+        .navbar-dropdown a, .navbar-dropdown button {
+            color: #222;
+            text-decoration: none;
+            padding: 0.9rem 1.5rem;
+            font-size: 1rem;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+        .navbar-dropdown a:hover, .navbar-dropdown button:hover {
+            background: #F8F8F8;
+        }
+        .navbar-dropdown .logout-btn {
+            color: var(--hermes-orange, #FF4E00);
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            width: 100%;
         }
         .navbar-links a {
             color: #333;
@@ -239,12 +302,11 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="navbar-logo">Golf is Fun</div>
-        <div class="navbar-links">
+        <div class="navbar-logo">Golf Mastery</div>
+        <div class="navbar-links" id="navbar-links">
             <a href="home.html">Home</a>
-            <a href="calendar.html">Calendar</a>
-            <a href="statistics.html">Statistics</a>
-            <a href="index.html">Practice</a>
+            <a href="signup.html">Sign Up</a>
+            <a href="login.html" id="login-link">Log In</a>
         </div>
     </nav>
     <section class="hero">
@@ -254,11 +316,11 @@
             <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80" class="hero-bg-img" style="" alt="dummy3">
             <img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80" class="hero-bg-img" style="" alt="dummy4">
         </div>
-        <div class="hero-title">Welcome to Golf is Fun!</div>
+        <div class="hero-title">Welcome to Golf Mastery!</div>
         <div class="hero-subtitle">
             Discover, track, and enjoy your golf journey. Plan tournaments, log your practice, and see your progress—all in one beautiful, interactive platform.
         </div>
-        <a href="calendar.html"><button class="hero-cta">View Tournament Calendar</button></a>
+        <a href="index.html"><button class="hero-cta">Go for Practice</button></a>
     </section>
     <section class="featured-section">
         <div class="featured-title">Featured Sections</div>
@@ -287,7 +349,7 @@
                 <img class="review-avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User 1">
                 <div class="review-content">
                     <div class="review-name">James T.</div>
-                    <div class="review-text">“Golf is Fun has made it so easy to track my tournaments and see my progress. The calendar is a game changer!”</div>
+                    <div class="review-text">“Golf Mastery has made it so easy to track my tournaments and see my progress. The calendar is a game changer!”</div>
                 </div>
             </div>
             <div class="review-card">
@@ -314,7 +376,7 @@
         </div>
     </section>
     <footer class="footer">
-        &copy; 2025 Golf is Fun. Crafted with passion for golfers everywhere.
+        &copy; 2025 Golf Mastery. Crafted with passion for golfers everywhere.
     </footer>
     <script>
     // Hero background slideshow animation
@@ -344,6 +406,63 @@
         }
         window.addEventListener('scroll', onScroll);
         window.addEventListener('load', onScroll);
+    })();
+    // Navbar login state logic
+    (function() {
+        function isLoggedIn() {
+            return localStorage.getItem('golfisfun_logged_in') === 'true' && localStorage.getItem('golfisfun_email');
+        }
+        function getUserInitial() {
+            const email = localStorage.getItem('golfisfun_email') || '';
+            return email.charAt(0).toUpperCase();
+        }
+        const loginLink = document.getElementById('login-link');
+        const signupLink = document.querySelector('.navbar-links a[href="signup.html"]');
+        if (isLoggedIn() && loginLink) {
+            if (signupLink) signupLink.remove();
+            const initial = getUserInitial();
+            // Create avatar wrapper
+            const avatarWrapper = document.createElement('div');
+            avatarWrapper.style.position = 'relative';
+            avatarWrapper.style.display = 'inline-block';
+            // Create avatar
+            const avatar = document.createElement('span');
+            avatar.className = 'navbar-avatar';
+            avatar.title = localStorage.getItem('golfisfun_email');
+            avatar.textContent = initial;
+            avatar.tabIndex = 0;
+            avatarWrapper.appendChild(avatar);
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'navbar-dropdown';
+            dropdown.innerHTML = `
+                <a href="index.html">Practice</a>
+                <a href="calendar.html">Calendar</a>
+                <a href="statistics.html">History</a>
+                <button class="logout-btn">Log Out</button>
+            `;
+            avatarWrapper.appendChild(dropdown);
+            // Toggle dropdown
+            avatar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+            });
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                dropdown.classList.remove('show');
+            });
+            // Prevent dropdown from closing when clicking inside
+            dropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            // Log out button
+            dropdown.querySelector('.logout-btn').onclick = function() {
+                localStorage.removeItem('golfisfun_logged_in');
+                localStorage.removeItem('golfisfun_email');
+                window.location.reload();
+            };
+            loginLink.replaceWith(avatarWrapper);
+        }
     })();
     </script>
 </body>
