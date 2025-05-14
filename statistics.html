@@ -6,6 +6,8 @@
     <title>Practice History - Golf Mastery</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
         .history-container {
             max-width: 1200px;
@@ -115,9 +117,35 @@
                     <option value="7-wood">7 Wood</option>
                     <option value="putt">Putt</option>
                 </select>
-                <input type="date" id="date-filter" placeholder="Filter by date">
+                <!-- Period Filter -->
+                <select id="period-filter">
+                    <option value="today">Today</option>
+                    <option value="ytd">Year-To-Date</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+                <input type="date" id="custom-start" style="display:none;" placeholder="Start date">
+                <input type="date" id="custom-end" style="display:none;" placeholder="End date">
+                <input type="date" id="date-filter" placeholder="Filter by date" style="display:none;">
             </div>
-
+            <!-- Milestones Section -->
+            <div id="milestones-box" style="max-width:600px;margin:1.5rem auto 1rem auto;padding:1.25rem 1.5rem;background:#fffbe6;border:2px solid #ffe066;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);font-size:1.15rem;display:none;">
+                <span id="milestones-message"></span>
+            </div>
+            <!-- Success Rate Over Time Chart -->
+            <div style="margin: 2rem 0;">
+                <h2 style="margin-bottom: 1rem;">Success Rate Over Time</h2>
+                <canvas id="successRateChart" height="80"></canvas>
+            </div>
+            <!-- Practice Volume Over Time Chart -->
+            <div style="margin: 2rem 0;">
+                <h2 style="margin-bottom: 1rem;">Practice Volume Over Time (Balls Hit per Week)</h2>
+                <canvas id="practiceVolumeChart" height="80"></canvas>
+            </div>
+            <!-- Club Usage Pie Chart -->
+            <div style="max-width: 600px; margin: 1rem 0;">
+                <h2 style="margin: 0 0 0.5rem 0; text-align: left;">Club Usage (Percentage of Balls Hit)</h2>
+                <canvas id="clubUsageChart" height="80" style="max-width: 350px; display: block; margin: 0;"></canvas>
+            </div>
             <table class="history-table">
                 <thead>
                     <tr>
@@ -157,6 +185,9 @@
             const historyBody = document.getElementById('history-body');
             const clubFilter = document.getElementById('club-filter');
             const dateFilter = document.getElementById('date-filter');
+            const periodFilter = document.getElementById('period-filter');
+            const customStart = document.getElementById('custom-start');
+            const customEnd = document.getElementById('custom-end');
 
             // Format date and time
             function formatDateTime(timestamp) {
@@ -180,6 +211,199 @@
                 return isToday ? `Today at ${timeString}` : `${dateString} at ${timeString}`;
             }
 
+            let successRateChart;
+            function updateSuccessRateChart(sessions) {
+                const ctx = document.getElementById('successRateChart').getContext('2d');
+                const labels = sessions.map(s => (new Date(s.date)).toLocaleDateString());
+                const data = sessions.map(s => s.success_rate);
+                if (successRateChart) successRateChart.destroy();
+                successRateChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Success Rate (%)',
+                            data: data,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                            tension: 0.2,
+                            pointRadius: 3,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: { enabled: true }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Success Rate (%)' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Date' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            let practiceVolumeChart;
+            function getWeekString(date) {
+                // Returns 'YYYY-WW' (ISO week)
+                const d = new Date(date);
+                d.setHours(0,0,0,0);
+                // Thursday in current week decides the year.
+                d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+                const week1 = new Date(d.getFullYear(),0,4);
+                const weekNo = 1 + Math.round(((d.getTime() - week1.getTime())/86400000 - 3 + ((week1.getDay()+6)%7))/7);
+                return `${d.getFullYear()}-W${weekNo.toString().padStart(2,'0')}`;
+            }
+            function updatePracticeVolumeChart(sessions) {
+                // Group by week
+                const weekMap = {};
+                sessions.forEach(s => {
+                    const week = getWeekString(s.date);
+                    weekMap[week] = (weekMap[week] || 0) + (s.balls_hit || 0);
+                });
+                // Sort weeks
+                const weeks = Object.keys(weekMap).sort();
+                const balls = weeks.map(w => weekMap[w]);
+                const ctx = document.getElementById('practiceVolumeChart').getContext('2d');
+                if (practiceVolumeChart) practiceVolumeChart.destroy();
+                practiceVolumeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: weeks,
+                        datasets: [{
+                            label: 'Balls Hit',
+                            data: balls,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: { enabled: true }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Balls Hit' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Week' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            let clubUsageChart;
+            function updateClubUsageChart(sessions) {
+                // Group by club
+                const clubMap = {};
+                sessions.forEach(s => {
+                    const club = s.club || 'Unknown';
+                    clubMap[club] = (clubMap[club] || 0) + (s.balls_hit || 0);
+                });
+                const clubs = Object.keys(clubMap);
+                const balls = clubs.map(c => clubMap[c]);
+                const total = balls.reduce((a, b) => a + b, 0) || 1;
+                const ctx = document.getElementById('clubUsageChart').getContext('2d');
+                if (clubUsageChart) clubUsageChart.destroy();
+                clubUsageChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: clubs,
+                        datasets: [{
+                            label: 'Balls Hit',
+                            data: balls,
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#FF6384AA', '#36A2EBAA', '#FFCE56AA', '#4BC0C0AA', '#9966FFAA', '#FF9F40AA', '#C9CBCFAA'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true, position: 'right' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const percent = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value} balls (${percent}%)`;
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                font: { weight: 'bold', size: 14 },
+                                formatter: function(value, context) {
+                                    const percent = ((value / total) * 100).toFixed(1);
+                                    return percent > 0 ? percent + '%' : '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            }
+
+            function showMilestones(sessions) {
+                const milestones = [100, 500, 1000, 5000, 10000, 20000, 50000, 100000];
+                const totalBalls = sessions.reduce((sum, s) => sum + (s.balls_hit || 0), 0);
+                let reached = 0;
+                let next = milestones[0];
+                for (let m of milestones) {
+                    if (totalBalls >= m) reached = m;
+                    if (totalBalls < m) { next = m; break; }
+                }
+                // Calculate longest streak
+                const uniqueDates = Array.from(new Set(sessions.map(s => (new Date(s.date)).toDateString()))).sort();
+                let longestStreak = 0, currentStreak = 0, prevDate = null;
+                uniqueDates.forEach(dateStr => {
+                    const date = new Date(dateStr);
+                    if (prevDate) {
+                        const diff = (date - prevDate) / (1000 * 60 * 60 * 24);
+                        if (diff === 1) {
+                            currentStreak++;
+                        } else {
+                            currentStreak = 1;
+                        }
+                    } else {
+                        currentStreak = 1;
+                    }
+                    if (currentStreak > longestStreak) longestStreak = currentStreak;
+                    prevDate = date;
+                });
+                const box = document.getElementById('milestones-box');
+                const msg = document.getElementById('milestones-message');
+                let milestoneMsg = '';
+                if (reached > 0) {
+                    milestoneMsg = `🎉 <b>Congratulations!</b> You've hit <b>${reached.toLocaleString()}</b> balls!` + (next ? ` Next milestone: <b>${next.toLocaleString()}</b> balls.` : '');
+                } else {
+                    milestoneMsg = `Keep going! First milestone: <b>${next.toLocaleString()}</b> balls.`;
+                }
+                let streakMsg = '';
+                if (longestStreak > 1) {
+                    streakMsg = `<br>🔥 <b>Longest streak:</b> ${longestStreak} days in a row!`;
+                } else if (longestStreak === 1) {
+                    streakMsg = `<br>🔥 <b>Longest streak:</b> 1 day (get a streak going!)`;
+                }
+                msg.innerHTML = milestoneMsg + streakMsg;
+                box.style.display = '';
+            }
+
             // Fetch and display history
             async function fetchHistory() {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -194,16 +418,31 @@
                     .eq('user_id', user.id)
                     .order('date', { ascending: false });
 
-                // Apply filters
+                // Apply club filter
                 if (clubFilter.value) {
                     query = query.eq('club', clubFilter.value);
                 }
-                if (dateFilter.value) {
-                    const startDate = new Date(dateFilter.value);
-                    const endDate = new Date(dateFilter.value);
-                    endDate.setDate(endDate.getDate() + 1);
-                    query = query.gte('date', startDate.toISOString())
-                               .lt('date', endDate.toISOString());
+
+                // Apply period filter
+                const now = new Date();
+                if (periodFilter.value === 'today') {
+                    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const end = new Date(start);
+                    end.setDate(end.getDate() + 1);
+                    query = query.gte('date', start.toISOString()).lt('date', end.toISOString());
+                } else if (periodFilter.value === 'ytd') {
+                    const start = new Date(now.getFullYear(), 0, 1);
+                    query = query.gte('date', start.toISOString()).lte('date', now.toISOString());
+                } else if (periodFilter.value === 'custom') {
+                    if (customStart.value) {
+                        const start = new Date(customStart.value);
+                        query = query.gte('date', start.toISOString());
+                    }
+                    if (customEnd.value) {
+                        const end = new Date(customEnd.value);
+                        end.setDate(end.getDate() + 1); // include the end date
+                        query = query.lt('date', end.toISOString());
+                    }
                 }
 
                 const { data, error } = await query;
@@ -216,6 +455,10 @@
 
                 if (!data || data.length === 0) {
                     historyBody.innerHTML = '<tr><td colspan="7" class="no-data">No practice sessions found</td></tr>';
+                    updateSuccessRateChart([]);
+                    updatePracticeVolumeChart([]);
+                    updateClubUsageChart([]);
+                    showMilestones([]);
                     return;
                 }
 
@@ -235,11 +478,28 @@
                         </tr>
                     `;
                 }).join('');
+                // Update chart
+                updateSuccessRateChart(data.slice().reverse()); // oldest to newest
+                updatePracticeVolumeChart(data);
+                updateClubUsageChart(data);
+                showMilestones(data);
             }
 
             // Event listeners for filters
             clubFilter.addEventListener('change', fetchHistory);
             dateFilter.addEventListener('change', fetchHistory);
+            periodFilter.addEventListener('change', () => {
+                if (periodFilter.value === 'custom') {
+                    customStart.style.display = '';
+                    customEnd.style.display = '';
+                } else {
+                    customStart.style.display = 'none';
+                    customEnd.style.display = 'none';
+                }
+                fetchHistory();
+            });
+            customStart.addEventListener('change', fetchHistory);
+            customEnd.addEventListener('change', fetchHistory);
 
             // Initial fetch
             fetchHistory();

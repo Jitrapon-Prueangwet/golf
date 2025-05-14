@@ -690,4 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize night mode
     initNightMode();
+
+    const subscribeBtn = document.getElementById('open-subscribe-landing');
+    if (subscribeBtn) subscribeBtn.style.display = 'none';
 });

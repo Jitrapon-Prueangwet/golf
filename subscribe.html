@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscriptions</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #f6f8fa;
+        }
+        .pricing-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        .pricing-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 2.5rem 2rem 2rem 2rem;
+            min-width: 260px;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .pricing-card .plan-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--hermes-orange-dark);
+            letter-spacing: 0.02em;
+        }
+        .pricing-card.free .plan-title {
+            color: #2a6ebb;
+        }
+        .pricing-card.premium .plan-title {
+            color: var(--hermes-orange-dark);
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+            width: 100%;
+        }
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            font-size: 1.05rem;
+            margin-bottom: 0.7rem;
+            color: #333;
+        }
+        .feature-list .check {
+            color: #2ecc40;
+            font-size: 1.2rem;
+            margin-right: 0.7rem;
+        }
+        .feature-list .cross {
+            color: #ff4136;
+            font-size: 1.2rem;
+            margin-right: 0.7rem;
+        }
+        .price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1.5rem 0 0.5rem 0;
+            color: #222;
+        }
+        .per-month {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+        .select-btn {
+            background: #2a6ebb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .pricing-card.premium .select-btn {
+            background: var(--hermes-orange-dark);
+        }
+        .select-btn:hover {
+            background: var(--hermes-orange);
+            transform: translateY(-2px) scale(1.04);
+        }
+        @media (max-width: 800px) {
+            .pricing-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pricing-container">
+        <div class="pricing-card free">
+            <div class="plan-title">Free</div>
+            <ul class="feature-list">
+                <li><span class="check">✔</span>Practice access</li>
+                <li><span class="cross">✖</span>Record Calendar Tournaments</li>
+                <li><span class="cross">✖</span>View statistics</li>
+            </ul>
+            <div class="price">$0</div>
+            <div class="per-month">per month</div>
+            <button class="select-btn" disabled>Current Plan</button>
+        </div>
+        <div class="pricing-card premium">
+            <div class="plan-title">Premium</div>
+            <ul class="feature-list">
+                <li><span class="check">✔</span>Practice access</li>
+                <li><span class="check">✔</span>Record Calendar Tournaments</li>
+                <li><span class="check">✔</span>View statistics</li>
+            </ul>
+            <div class="price">$3</div>
+            <div class="per-month">per month</div>
+            <button class="select-btn" onclick="window.location.href='https://buy.stripe.com/00g4jzgey6L6eIgbIL'">SELECT</button>
+        </div>
+    </div>
+    <div style="text-align:center; margin-top:2rem;">
+        <a href="index.html" style="color: var(--hermes-orange); text-decoration: underline;">&larr; Back to Practice</a>
+    </div>
+</body>
+</html> 

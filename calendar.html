@@ -9,6 +9,7 @@
     <!-- FullCalendar CSS and JS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+    
     <style>
         .calendar-container {
             max-width: 800px;
@@ -264,13 +265,15 @@
                     } else {
                         const dateStr = `${year}-${(month+1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                         const todaysTournaments = tournaments.filter(t => t.date === dateStr);
-                        html += `<td style="vertical-align:top; height:60px; border:1px solid #eee; position:relative; cursor:pointer;" data-date="${dateStr}">
+                        html += `<td style="vertical-align:top; height:60px; max-width:100px; width:100px; border:1px solid #eee; position:relative; cursor:pointer; overflow:hidden;" data-date="${dateStr}">
                             <div style="font-weight:600; color:#444;">${day}</div>`;
                         todaysTournaments.forEach(t => {
-                            html += `<div class=\"tournament-badge\" title=\"${t.title} - ${t.location}\" style=\"background:var(--hermes-orange, #ff9800); color:#fff; border-radius:6px; padding:2px 6px; margin-top:4px; font-size:0.85rem; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; position:relative;\">
-                                <span onclick=\"alert('Title: ${t.title}\\nLocation: ${t.location}\\nDate: ${t.date}')\">${t.title}</span>
-                                <button class='edit-btn' data-id='${t.id}' data-title='${t.title}' data-date='${t.date}' data-location='${t.location}' style='margin-left:4px; background:#fff; color:#ff9800; border:none; cursor:pointer; font-size:0.9em; border-radius:3px; padding:0 4px;'>✎</button>
-                                <button class='delete-btn' data-id='${t.id}' style='margin-left:2px; background:#fff; color:#dc3545; border:none; cursor:pointer; font-size:0.9em; border-radius:3px; padding:0 4px;'>🗑</button>
+                            html += `<div class="tournament-badge" title="${t.title} - ${t.location}">
+                                <span class="tournament-title" onclick=\"alert('Title: ${t.title}\\nLocation: ${t.location}\\nDate: ${t.date}')\">${t.title.length > 4 ? t.title.substring(0, 4) + '…' : t.title}</span>
+                                <span class="tournament-actions">
+                                    <button class='edit-btn' data-id='${t.id}' data-title='${t.title}' data-date='${t.date}' data-location='${t.location}'>✎</button>
+                                    <button class='delete-btn' data-id='${t.id}'>🗑</button>
+                                </span>
                             </div>`;
                         });
                         html += '</td>';

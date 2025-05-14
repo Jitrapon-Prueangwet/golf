@@ -377,6 +377,22 @@
     <footer class="footer">
         &copy; 2025 Golf Mastery. Crafted with passion for golfers everywhere.
     </footer>
+    <!-- Signup Modal (copied from index.html) -->
+    <div id="signup-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="close-signup">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signup-form">
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" required>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" required>
+                <button type="submit">Create Account</button>
+            </form>
+            <div id="signup-message"></div>
+            <div id="signup-extra-message" style="color:#FF4E00; margin-top:1rem; display:none;"></div>
+        </div>
+    </div>
     <script>
     // Hero background slideshow animation
     (function() {
@@ -462,6 +478,47 @@
             };
             loginLink.replaceWith(avatarWrapper);
         }
+    })();
+    (function() {
+        // Helper to check login
+        function isLoggedIn() {
+            return localStorage.getItem('golfisfun_logged_in') === 'true' && localStorage.getItem('golfisfun_email');
+        }
+        // Intercept restricted links
+        document.querySelectorAll('.featured-card-link[href="calendar.html"], .featured-card-link[href="statistics.html"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (!isLoggedIn()) {
+                    e.preventDefault();
+                    var modal = document.getElementById('signup-modal');
+                    var extraMsg = document.getElementById('signup-extra-message');
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        if (extraMsg) {
+                            extraMsg.textContent = 'You have not yet signed up. Please sign up to use these features!';
+                            extraMsg.style.display = 'block';
+                        }
+                    }
+                }
+            });
+        });
+        // Close modal logic
+        var closeBtn = document.getElementById('close-signup');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                var modal = document.getElementById('signup-modal');
+                if (modal) modal.style.display = 'none';
+                var extraMsg = document.getElementById('signup-extra-message');
+                if (extraMsg) extraMsg.style.display = 'none';
+            };
+        }
+        window.onclick = function(event) {
+            var modal = document.getElementById('signup-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                var extraMsg = document.getElementById('signup-extra-message');
+                if (extraMsg) extraMsg.style.display = 'none';
+            }
+        };
     })();
     </script>
 </body>
